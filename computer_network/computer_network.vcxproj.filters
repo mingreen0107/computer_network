@@ -18,5 +18,8 @@
     <ClCompile Include="hello_client.c">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="low_cpy_std.c">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
