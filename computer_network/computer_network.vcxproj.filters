@@ -21,5 +21,8 @@
     <ClCompile Include="low_cpy_std.c">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="hello_server.c">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
