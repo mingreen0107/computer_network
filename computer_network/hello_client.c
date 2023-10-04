@@ -18,14 +18,17 @@ int main(int argc, char* argv[])
 		printf("Usage : %s <IP> <port>\n", argv[0]);
 		exit(1);
 	}
-
+	
+	//통신하기 위한 소켓 생성
 	sock = socket(PF_INET, SOCK_STREAM, 0);
 	if (sock == -1)
 		error_handling("socket() error");
 
 	memset(&serv_addr, 0, sizeof(serv_addr));
 	serv_addr.sin_family = AF_INET;
+	//[1] IP 사용
 	serv_addr.sin_addr.s_addr = inet_addr(argv[1]);
+	//[2] port 사용
 	serv_addr.sin_port = htons(atoi(argv[2]));
 
 	if (connect(sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) == -1)
