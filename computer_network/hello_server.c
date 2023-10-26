@@ -9,6 +9,7 @@ void error_handling(char* message);
 
 /*int argc에는 . / hello 일때는 1 . / hello 1198 일때는 2, 문자열을 여러개 다룰 때 char* 사용*/
 int main(int argc, char* argv[]) {
+
 	int serv_sock;
 	int clnt_sock;
 
