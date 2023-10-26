@@ -60,6 +60,7 @@ int main(int argc, char* argv[]) {
 /*실행이 된다면 listen함수에서 진행 중*/
 
 void error_handling(char* message) {
+
 	fputs(message, stderr);
 	fputc('\n', stderr);
 	exit(1);
