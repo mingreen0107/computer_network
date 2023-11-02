@@ -1,66 +1,105 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
+#include <string.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
+#include <netinet/in.h>
+#include <pthread.h>
 
-void error_handling(char* message);
+#define BUF_SIZE 1000
+#define MAX_CLNT 40
 
-/*int argc에는 . / hello 일때는 1 . / hello 1198 일때는 2, 문자열을 여러개 다룰 때 char* 사용*/
-int main(int argc, char* argv[]) {
+void* handle_clnt(void* arg);
+void send_msg(char* msg, int len);
+void error_handling(char* msg);
 
-	int serv_sock;
-	int clnt_sock;
+int clnt_cnt = 0; 
+int clnt_socks[MAX_CLNT];
 
-	struct sockaddr_in serv_addr;
-	struct sockaddr_in clnt_addr;
-	socklen_t clnt_addr_size;
+pthread_mutex_t mutx;
+pthread_attr_t attr; 
 
-	/*클라이언트가 서버로 접속했다는 신호를 받았을 때 서버가 보내는 메시지*/
-	char message[] = "Hello World!";
+int main(int argc, char* argv[])
+{
+    int serv_sock, clnt_sock;
+    struct sockaddr_in serv_adr, clnt_adr;
+    int clnt_adr_sz;
+    pthread_t t_id;
+    if (argc != 2)
+    {
+        printf("Usage : %s <port>\n", argv[0]);
+        exit(1);
+    }
 
-	/* ./hello 1198 이렇게 실행해야지 돌아간다는 뜻*/
-	if (argc != 2) {
-		printf("Usage : %s <port>\n", argv[0]);
-		exit(1);
-	}
+    pthread_mutex_init(&mutx, NULL);
+    pthread_attr_init(&attr);	
 
-	serv_sock = socket(PF_INET, SOCK_STREAM, 0);
-	if (serv_sock == -1)
-		error_handling("socket() error");
+    serv_sock = socket(PF_INET, SOCK_STREAM, 0);
+    memset(&serv_adr, 0, sizeof(serv_adr));
+    serv_adr.sin_family = AF_INET;
+    serv_adr.sin_addr.s_addr = htonl(INADDR_ANY);
+    serv_adr.sin_port = htons(atoi(argv[1]));
 
-	/*위에서 선언된 구조체 초기화*/
-	memset(&serv_addr, 0, sizeof(serv_addr));
-	serv_addr.sin_family = AF_INET;
-	serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-	serv_addr.sin_port = htons(atoi(argv[1]));
+    if (bind(serv_sock, (struct sockaddr*)&serv_adr, sizeof(serv_adr)) == -1)
+        error_handling("bind() error");
+    if (listen(serv_sock, 5) == -1)
+        error_handling("listen() error");
 
-	/*sockaddr의 형태로 받기 위한 형변환*/
-	if (bind(serv_sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) == -1)
-		error_handling("bind() error");
+    while (1)
+    {
+        clnt_adr_sz = sizeof(clnt_adr);
+        clnt_sock = accept(serv_sock, (struct sockaddr*)&clnt_adr, &clnt_adr_sz);
 
-	/*통신을 할 수 있기 때문에 듣기 시작 소켓아이디 필요-serv_sock*/
-	if (listen(serv_sock, 5) == -1)
-		error_handling("listen() error");
+        pthread_mutex_lock(&mutx);	
+        clnt_socks[clnt_cnt++] = clnt_sock;
+        pthread_mutex_unlock(&mutx);
 
-	clnt_addr_size = sizeof(clnt_addr);
-	/*받아 드리는 함수*/
-	clnt_sock = accept(serv_sock, (struct sockaddr*)&clnt_addr, &clnt_addr_size);
-	/*-1이 아니면 제대로 진행된다는 뜻*/
-	if (clnt_sock == -1)
-		error_handling("accept() error");
-
-	/*read write 하면서 끝*/
-	write(clnt_sock, message, sizeof(message));
-	close(clnt_sock);
-	close(serv_sock);
-	return 0;
+        pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+        pthread_create(&t_id, &attr, handle_clnt, (void*)&clnt_sock);
+        printf("Connected client IP: %s \n", inet_ntoa(clnt_adr.sin_addr));
+    }
+    close(serv_sock);
+    return 0;
 }
-/*실행이 된다면 listen함수에서 진행 중*/
 
-void error_handling(char* message) {
-	fputs(message, stderr);
-	fputc('\n', stderr);
-	exit(1);
+void* handle_clnt(void* arg)
+{
+    int clnt_sock = *((int*)arg);
+    int str_len = 0, i;
+    char msg[BUF_SIZE];
+
+    while ((str_len = read(clnt_sock, msg, sizeof(msg))) != 0)
+        send_msg(msg, str_len);		
+
+    pthread_mutex_lock(&mutx);	
+    for (i = 0; i < clnt_cnt; i++)
+    {
+        if (clnt_sock == clnt_socks[i])
+        {
+            while (i++ < clnt_cnt - 1)
+                clnt_socks[i] = clnt_socks[i + 1];
+            printf("Closed client...\n");
+            break;
+        }
+    }
+    clnt_cnt--;
+    pthread_mutex_unlock(&mutx);
+    close(clnt_sock);
+    return NULL;
 }
+void send_msg(char* msg, int len) 
+{
+    int i;
+    pthread_mutex_lock(&mutx);
+    for (i = 0; i < clnt_cnt; i++)
+        write(clnt_socks[i], msg, len);
+    pthread_mutex_unlock(&mutx);	
+}
+void error_handling(char* msg)
+{
+    fputs(msg, stderr);
+    fputc('\n', stderr);
+    exit(1);
+}
+

@@ -13,11 +13,10 @@ int main(int argc, char* argv[])
 {
 	int sock;
 	struct sockaddr_in serv_addr;
-	char message[30];
+	char message[BUF_SIZE]; // 크기 변경
 	int str_len;
 	// 이름을 받기 위해
 	char username[100];
-	int str_len;
 
 	if (argc != 3) {
 		printf("Usage : %s <IP> <port>\n", argv[0]);
@@ -28,7 +27,7 @@ int main(int argc, char* argv[])
 	fgets(username, sizeof(username), stdin);
 	username[strcspn(username, "\n")] = '\0';
 
-	sock = socket(PF_INET, SOCK_STREAM, 0);
+	sock = socket(AF_INET, SOCK_STREAM, 0);
 	if (sock == -1)
 		error_handling("socket() error");
 
@@ -44,9 +43,10 @@ int main(int argc, char* argv[])
 	send(sock, username, strlen(username), 0);
 
 	// 메시지 전송 및 수신 반복
-	whlie(1) {
+	while (1) {
 		printf("input message(exit 시 종료): ");
 		fgets(message, BUF_SIZE, stdin);
+		// enter 기준으로 문자열 처리
 		message[strcspn(message, "\n")] = '\0';
 
 		// 메시지가 "exit"인 경우 프로그램 종료
@@ -57,7 +57,7 @@ int main(int argc, char* argv[])
 		}
 		// 서버에 메시지 전송
 		send(sock, message, strlen(message), 0);
-		// 메시지 버퍼 초기화
+		// 메시지 버퍼 초기화 (전에 수신한 데이터와 헷갈리지 않도록)
 		memset(message, 0, BUF_SIZE);
 
 		str_len = read(sock, message, sizeof(message) - 1);
@@ -65,7 +65,6 @@ int main(int argc, char* argv[])
 			error_handling("read() error!");
 
 		printf("server response: %s\n", message);
-
 	}
 	close(sock);
 	return 0;
