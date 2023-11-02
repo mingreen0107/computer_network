@@ -5,6 +5,8 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 
+#define BUF_SIZE 1000
+
 void error_handling(char* message);
 
 int main(int argc, char* argv[])
@@ -13,32 +15,58 @@ int main(int argc, char* argv[])
 	struct sockaddr_in serv_addr;
 	char message[30];
 	int str_len;
+	// 이름을 받기 위해
+	char username[100];
+	int str_len;
 
 	if (argc != 3) {
 		printf("Usage : %s <IP> <port>\n", argv[0]);
 		exit(1);
 	}
-	
-	//통신하기 위한 소켓 생성
+	// 사용자로부터 이름 입력 받기
+	printf("input your name: ");
+	fgets(username, sizeof(username), stdin);
+	username[strcspn(username, "\n")] = '\0';
+
 	sock = socket(PF_INET, SOCK_STREAM, 0);
 	if (sock == -1)
 		error_handling("socket() error");
 
 	memset(&serv_addr, 0, sizeof(serv_addr));
 	serv_addr.sin_family = AF_INET;
-	//[1] IP 사용
 	serv_addr.sin_addr.s_addr = inet_addr(argv[1]);
-	//[2] port 사용
 	serv_addr.sin_port = htons(atoi(argv[2]));
 
 	if (connect(sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) == -1)
 		error_handling("connect() error!");
 
-	str_len = read(sock, message, sizeof(message) - 1);
-	if (str_len == -1)
-		error_handling("read() error!");
+	// 연결된 서버에 사용자 이름 전송
+	send(sock, username, strlen(username), 0);
 
-	printf("Message from server: %s \n", message);
+	// 메시지 전송 및 수신 반복
+	whlie(1) {
+		printf("input message(exit 시 종료): ");
+		fgets(message, BUF_SIZE, stdin);
+		message[strcspn(message, "\n")] = '\0';
+
+		// 메시지가 "exit"인 경우 프로그램 종료
+		if (strcmp(message, "exit") == 0) {
+			printf("program exit\n");
+			close(sock);
+			exit(0);
+		}
+		// 서버에 메시지 전송
+		send(sock, message, strlen(message), 0);
+		// 메시지 버퍼 초기화
+		memset(message, 0, BUF_SIZE);
+
+		str_len = read(sock, message, sizeof(message) - 1);
+		if (str_len == -1)
+			error_handling("read() error!");
+
+		printf("server response: %s\n", message);
+
+	}
 	close(sock);
 	return 0;
 }
