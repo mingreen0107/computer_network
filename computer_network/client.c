@@ -41,7 +41,6 @@ int main(int argc, char* argv[]){
 
     if (connect(sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) == -1)
         error_handling("connect() error!");
-
     // 연결된 서버에 사용자 이름 전송
     send(sock, username, strlen(username), 0);
 
