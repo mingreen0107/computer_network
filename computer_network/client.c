@@ -8,7 +8,6 @@
 #define BUF_SIZE 1000
 
 void error_handling(char* message) {
-
     fputs(message, stderr);
     fputc('\n', stderr);
     exit(1);
