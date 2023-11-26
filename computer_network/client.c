@@ -64,6 +64,7 @@ int main(int argc, char* argv[]){
         memset(message, 0, BUF_SIZE);
 
         str_len = read(sock, message, sizeof(message) - 1);
+
         if (str_len == -1)
             error_handling("read() error!");
 
