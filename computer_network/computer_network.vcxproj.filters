@@ -24,5 +24,8 @@
     <ClCompile Include="client.c">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="chat_serv.c">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
