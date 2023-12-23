@@ -41,8 +41,7 @@ int main(int argc, char* argv[]) {
 	if (listen(serv_sock, 5) == -1)
 		error_handling("listen() error");
 
-	while (1)
-	{
+	while (1) {
 		clnt_adr_sz = sizeof(clnt_adr);
 		clnt_sock = accept(serv_sock, (struct sockaddr*)&clnt_adr, &clnt_adr_sz);
 
