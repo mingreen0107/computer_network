@@ -57,8 +57,7 @@ int main(int argc, char* argv[]) {
 	return 0;
 }
 
-void* handle_clnt(void* arg)
-{
+void* handle_clnt(void* arg) {
 	int clnt_sock = *((int*)arg);
 	int str_len = 0, i;
 	char msg[BUF_SIZE];
