@@ -56,7 +56,6 @@ int main(int argc, char* argv[]) {
 	close(serv_sock);
 	return 0;
 }
-
 void* handle_clnt(void* arg) {
 	int clnt_sock = *((int*)arg);
 	int str_len = 0, i;
