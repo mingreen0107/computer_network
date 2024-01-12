@@ -51,6 +51,7 @@ int main(int argc, char* argv[]) {
 		pthread_detach(t_id);
 		printf("Connected client IP: %s \n", inet_ntoa(clnt_adr.sin_addr));
 	}
+
 	close(serv_sock);
 	return 0;
 }
