@@ -22,7 +22,6 @@ int main(int argc, char* argv[]) {
 	int serv_sock, clnt_sock;
 	struct sockaddr_in serv_adr, clnt_adr;
 	int clnt_adr_sz;
-
 	pthread_t t_id;
 
 	if (argc != 2) {
