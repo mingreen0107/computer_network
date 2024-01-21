@@ -77,8 +77,7 @@ void* handle_clnt(void* arg) {
 	close(clnt_sock);
 	return NULL;
 }
-void send_msg(char* msg, int len)   // send to all
-{
+void send_msg(char* msg, int len) {
 	int i;
 	pthread_mutex_lock(&mutx);
 	for (i = 0; i < clnt_cnt; i++)
