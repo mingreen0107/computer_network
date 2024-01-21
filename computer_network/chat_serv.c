@@ -85,8 +85,7 @@ void send_msg(char* msg, int len)   // send to all
 		write(clnt_socks[i], msg, len);
 	pthread_mutex_unlock(&mutx);
 }
-void error_handling(char* msg)
-{
+void error_handling(char* msg) {
 	fputs(msg, stderr);
 	fputc('\n', stderr);
 	exit(1);
