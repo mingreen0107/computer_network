@@ -75,7 +75,6 @@ void* handle_clnt(void* arg) {
 	clnt_cnt--;
 	pthread_mutex_unlock(&mutx);
 	close(clnt_sock);
-
 	return NULL;
 }
 void send_msg(char* msg, int len) {
